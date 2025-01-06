@@ -10,18 +10,17 @@ if (!isset($_SESSION['loggedin'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Ambil data dari form
-    $kode_barang = $_POST['kode_buku'];
     $nama_barang = $_POST['judul_buku'];
     $stok = $_POST['stok'];
     $satuan = $_POST['satuan'];
 
     // Validasi input
-    if (empty($kode_barang) || empty($nama_barnag) || empty($stok) || empty($satuan)) {
+    if ( empty($nama_barnag) || empty($stok) || empty($satuan)) {
         $error = "Semua field harus diisi.";
     } else {
         // Insert data ke tabel buku
-        $stmt = $conn->prepare("INSERT INTO barang (kode_barang, nama_barang, stok, satuan, created_at) VALUES (?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ssis", $kode_barang, $nama_barang, $stok, $satuan);
+        $stmt = $conn->prepare("INSERT INTO barang ( nama_barang, stok, satuan, created_at) VALUES (?, ?, ?, ?, NOW())");
+        $stmt->bind_param("ssis", $nama_barang, $stok, $satuan);
 
         if ($stmt->execute()) {
             $success = "Barang berhasil ditambahkan.";
@@ -51,9 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST">
-        <label>Kode Barang:</label><br>
-        <input type="text" name="kode_barang" required><br><br>
-
         <label>Judul Barang:</label><br>
         <input type="text" name="nama_barang" required><br><br>
 

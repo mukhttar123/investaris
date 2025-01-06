@@ -8,11 +8,11 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Ambil data peminjaman dari database
-$query = " SELECT peminjaman.kode_peminjaman, peminjaman.nama_peminjam, peminjaman.alamat_peminjam, barang.nama_barang, peminjaman.tgl_pinjam, peminjaman.tgl_kembali, peminjaman.jumlah_dipinjam, peminjaman.status
-            FROM peminjaman
-            JOIN barang ON peminjaman.kode_barang = barang.kode_barang
-            ORDER BY peminjaman.tgl_pinjam DESC;
+// Ambil data pengambilan dari database
+$query = " SELECT barang.nama_barang, pengambilan.tgl_ambil,pengambilan.jumlah_ambil,barang.status
+            FROM pengambilan
+            JOIN barang ON barang.id
+            ORDER BY pengambilan.tgl_ambil DESC;
 
 ";
 $result = $conn->query($query);
@@ -24,7 +24,7 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Peminjaman</title>
+    <title>Laporan pengambilan</title>
     <style>
         table {
             width: 100%;
@@ -43,18 +43,14 @@ $result = $conn->query($query);
     </style>
 </head>
 <body>
-    <h1>Laporan Peminjaman Barang</h1>
+    <h1>Laporan pengambilan Barang</h1>
 
     <table>
         <thead>
             <tr>
-                <th>Kode Peminjaman</th>
-                <th>Nama Peminjam</th>
-                <th>Alamat</th>
-                <th>Judul Barangy</th>
-                <th>Tanggal Pinjam</th>
-                <th>Tanggal Kembali</th>
-                <th>Jumlah Dipinjam</th>
+                <th>Judul Barang</th>
+                <th>Tanggal Ambil</th>
+                <th>Jumlah Diambil</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -62,19 +58,15 @@ $result = $conn->query($query);
             <?php if ($result->num_rows > 0): ?>
                 <?php while ($row = $result->fetch_assoc()): ?>
                     <tr>
-                        <td><?= htmlspecialchars($row['kode_peminjaman']) ?></td>
-                        <td><?= htmlspecialchars($row['nama_peminjam']) ?></td>
-                        <td><?= htmlspecialchars($row['alamat_peminjam']) ?></td>
                         <td><?= htmlspecialchars($row['nama_barang']) ?></td>
-                        <td><?= htmlspecialchars($row['tgl_pinjam']) ?></td>
-                        <td><?= htmlspecialchars($row['tgl_kembali']) ?></td>
-                        <td><?= htmlspecialchars($row['jumlah_dipinjam']) ?></td>
+                        <td><?= htmlspecialchars($row['tgl_ambil']) ?></td>
+                        <td><?= htmlspecialchars($row['jumlah_ambil']) ?></td>
                         <td><?= htmlspecialchars($row['status']) ?></td>
                     </tr>
                 <?php endwhile; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="8">Tidak ada data peminjaman.</td>
+                    <td colspan="8">Tidak ada data laporan.</td>
                 </tr>
             <?php endif; ?>
         </tbody>

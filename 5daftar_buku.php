@@ -48,7 +48,7 @@ if (!isset($_SESSION['loggedin'])) {
             <tbody>
                 <?php
                 // Query untuk mengambil data barang
-                $query = "SELECT kode_barang, nama_barang, stok, satuan, created_at FROM barang ORDER BY created_at DESC";
+                $query = "SELECT nama_barang, stok, satuan, created_at FROM barang ORDER BY created_at DESC";
                 $result = $conn->query($query);
                 
                 if ($result->num_rows > 0) {
@@ -56,7 +56,6 @@ if (!isset($_SESSION['loggedin'])) {
                     while ($row = $result->fetch_assoc()) {
                         echo "<tr class='odd:bg-gray-700 even:bg-gray-600'>";
                         echo "<td class='px-4 py-2'>" . $no++ . "</td>";
-                        echo "<td class='px-4 py-2'>" . htmlspecialchars($row['kode_barang']) . "</td>";
                         echo "<td class='px-4 py-2'>" . htmlspecialchars($row['nama_barang']) . "</td>";
                         echo "<td class='px-4 py-2'>" . htmlspecialchars($row['stok']) . "</td>";
                         echo "<td class='px-4 py-2'>" . htmlspecialchars($row['satuan']) . "</td>";

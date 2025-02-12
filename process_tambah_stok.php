@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validasi input
     if (empty($nama_barang) || $stok_tambah <= 0) {
-        die('Nama barang atau jumlah stok tidak valid.');
+        header('Location: admin.php?error=Nama barang atau jumlah stok tidak valid.');
+        exit;
     }
 
     // Update stok di database
@@ -24,14 +25,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("is", $stok_tambah, $nama_barang);
 
     if ($stmt->execute()) {
-        header('Location: admin.php?success=stok_updated');
+        // Menambahkan riwayat ke tabel history_barang
+        $query_history = "INSERT INTO history_barang (id_barang, stok, satuan, status) 
+                          SELECT id, ?, satuan, 'masuk' FROM barang WHERE nama_barang = ?";
+        $stmt_history = $conn->prepare($query_history);
+        $stmt_history->bind_param("is", $stok_tambah, $nama_barang);
+        
+        if ($stmt_history->execute()) {
+            // Redirect dengan pesan sukses
+            header('Location: admin.php?message=Stok berhasil diperbarui');
+        } else {
+            // Jika terjadi kesalahan saat menambahkan riwayat
+            header('Location: admin.php?error=Terjadi kesalahan saat menambahkan riwayat: ' . $stmt_history->error);
+        }
+        
+        $stmt_history->close();
     } else {
-        // Gunakan mysqli_error() untuk debug jika terjadi kesalahan
-        echo 'Terjadi kesalahan saat memperbarui stok: ' . $conn->error;
+        // Jika terjadi kesalahan saat memperbarui stok
+        header('Location: admin.php?error=Terjadi kesalahan saat memperbarui stok: ' . $stmt->error);
     }
 
     $stmt->close();
 } else {
-    echo 'Akses tidak valid.';
+    header('Location: admin.php?error=Akses tidak valid.');
 }
 ?>

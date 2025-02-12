@@ -7,6 +7,56 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php');
     exit;
 }
+
+function timeAgo($datetime, $full = false) {
+    $now = new DateTime();
+    $ago = new DateTime($datetime);
+    $diff = $now->diff($ago);
+
+    // Menghitung jumlah minggu dari jumlah hari
+    $weeks = floor($diff->d / 7);
+    $days = $diff->d % 7; // Sisa hari setelah minggu
+
+    $string = array(
+        'y' => 'year',
+        'm' => 'month',
+        'w' => 'week',
+        'd' => 'day',
+        'h' => 'hour',
+        'i' => 'minute',
+        's' => 'second',
+    );
+
+    // Menghitung string waktu
+    $timeStrings = array();
+    if ($diff->y) {
+        $timeStrings[] = $diff->y . ' year' . ($diff->y > 1 ? 's' : '');
+    }
+    if ($diff->m) {
+        $timeStrings[] = $diff->m . ' month' . ($diff->m > 1 ? 's' : '');
+    }
+    if ($weeks) {
+        $timeStrings[] = $weeks . ' week' . ($weeks > 1 ? 's' : '');
+    }
+    if ($days) {
+        $timeStrings[] = $days . ' day' . ($days > 1 ? 's' : '');
+    }
+    if ($diff->h) {
+        $timeStrings[] = $diff->h . ' hour' . ($diff->h > 1 ? 's' : '');
+    }
+    if ($diff->i) {
+        $timeStrings[] = $diff->i . ' minute' . ($diff->i > 1 ? 's' : '');
+    }
+    if ($diff->s) {
+        $timeStrings[] = $diff->s . ' second' . ($diff->s > 1 ? 's' : '');
+    }
+
+    if (!$full) {
+        $timeStrings = array_slice($timeStrings, 0, 1);
+    }
+
+    return $timeStrings ? implode(', ', $timeStrings) . ' ago' : 'just now';
+}
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +94,12 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
             </thead>
             <tbody>
                 <?php
-                    $query_masuk = "SELECT * FROM barang WHERE status='masuk' ORDER BY created_at DESC";                
+                    // Mengambil data barang masuk dari tabel history_barang
+                    $query_masuk = "SELECT b.nama_barang, h.stok, h.satuan, h.created_at 
+                                    FROM history_barang h 
+                                    JOIN barang b ON h.id_barang = b.id 
+                                    WHERE h.status = 'masuk' 
+                                    ORDER BY h.created_at DESC";                
                     $result_masuk = $conn->query($query_masuk);
                     if ($result_masuk->num_rows > 0) {
                         $no = 1;
@@ -54,7 +109,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                             echo "<td class='px-4 py-2'>" . htmlspecialchars($row['nama_barang']) . "</td>";
                             echo "<td class='px-4 py-2'>" . htmlspecialchars($row['stok']) . "</td>";
                             echo "<td class='px-4 py-2'>" . htmlspecialchars($row['satuan']) . "</td>";
-                            echo "<td class='px-4 py-2'>" . htmlspecialchars($row['created_at']) . "</td>";
+                            echo "<td class='px-4 py-2'>" . timeAgo(htmlspecialchars($row['created_at'])) . "</td>";
                             echo "</tr>";
                         }
                     } else {
@@ -76,20 +131,26 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
             </thead>
             <tbody>
                 <?php
-                    $query_keluar = "SELECT p.jumlah_ambil, p.tgl_ambil, b.nama_barang FROM pengambilan p JOIN barang b ON p.id_barang = b.id ORDER BY p.tgl_ambil DESC";               
+                    // Mengambil data barang keluar dari tabel history_barang
+                    $query_keluar = "SELECT b.nama_barang, h.stok, p.tgl_ambil 
+                                     FROM pengambilan p 
+                                     JOIN barang b ON p.id_barang = b.id 
+                                     JOIN history_barang h ON h.id_barang = b.id 
+                                     WHERE h.status = 'keluar' 
+                                     ORDER BY p.tgl_ambil DESC";                
                     $result_keluar = $conn->query($query_keluar);
                     if ($result_keluar->num_rows > 0) {
                         $no = 1;
                         while ($row = $result_keluar->fetch_assoc()) {
                             echo "<tr class='odd:bg-gray-700 even:bg-gray-600'>";
                             echo "<td class='px-4 py-2'>" . $no++ . "</td>";
-                            echo "<td class='px-4 py-2'>" . htmlspecialchars($row ['nama_barang']) . "</td>";
-                            echo "<td class='px-4 py-2'>" . htmlspecialchars($row['jumlah_ambil']) . "</td>";
+                            echo "<td class='px-4 py-2'>" . htmlspecialchars($row['nama_barang']) . "</td>";
+                            echo "<td class='px-4 py-2'>" . htmlspecialchars($row['stok']) . "</td>";
                             echo "<td class='px-4 py-2'>" . htmlspecialchars($row['tgl_ambil']) . "</td>";
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='4' class='text-center py-4'>Tidak ada riwayat pengambilan.</td></tr>";
+                        echo "<tr><td colspan='4' class='text-center py-4'>Tidak ada data barang keluar.</td></tr>";
                     }
                 ?>
             </tbody>

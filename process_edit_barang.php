@@ -21,9 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
+    // Pastikan stok adalah angka
+    if (!is_numeric($stok) || $stok < 0) {
+        header('Location: admin.php?error=Stok harus berupa angka positif');
+        exit;
+    }
+
     // Siapkan dan jalankan query untuk memperbarui data barang
     $stmt = $conn->prepare("UPDATE barang SET nama_barang=?, stok=?, satuan=? WHERE id=?");
-    $stmt->bind_param("siss", $nama_barang, $stok, $satuan, $id_barang);
+    $stmt->bind_param("sisi", $nama_barang, $stok, $satuan, $id_barang); // Perbaiki tipe parameter
 
     if ($stmt->execute()) {
         // Jika berhasil, redirect dengan pesan sukses

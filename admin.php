@@ -64,16 +64,37 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
         </div>
     </header>
 
-
     <?php
-    if (isset($_GET['message'])) {
-        echo "<div class='bg-green-500 text-white p-4 rounded mb-4'>" . htmlspecialchars($_GET['message']) . "</div>";
-    }
+// Memeriksa apakah session sudah dimulai
+if (session_status() == PHP_SESSION_NONE) {
+    session_start(); // Memulai session jika belum dimulai
+}
 
-    if (isset($_GET['error'])) {
-        echo "<div class='bg-red-500 text-white p-4 rounded mb-4'>" . htmlspecialchars($_GET['error']) . "</div>";
-    }
-    ?>
+if (isset($_GET['message'])) {
+    $_SESSION['message'] = htmlspecialchars($_GET['message']);
+}
+
+if (isset($_SESSION['message'])) {
+    $message = $_SESSION['message'];
+    echo "
+    <div id='message' class='bg-green-500 text-white p-4 rounded mb-4 relative'>
+        <span>$message</span>
+        <span id='close' class='absolute top-0 right-0 p-2 cursor-pointer'>&times;</span>
+    </div>
+    <script>
+        var messageDiv = document.getElementById('message');
+        var closeButton = document.getElementById('close');
+
+        closeButton.onclick = function() {
+            messageDiv.style.display = 'none';
+            // Hapus pesan dari session
+            window.location.href = window.location.pathname; // Refresh halaman untuk menghapus pesan
+        };
+    </script>
+    ";
+    unset($_SESSION['message']); // Hapus pesan dari session setelah ditampilkan
+}
+?>
 
     <div class="w-full max-w-6xl my-4">
         <div class="flex justify-between mb-3">
@@ -103,7 +124,6 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                     <th class="px-4 py-2">Nama Barang</th>
                     <th class="px-4 py-2">Stok</th>
                     <th class="px-4 py-2">Satuan</th>
-                    <th class="px-4 py-2">Waktu Ditambahkan</th>
                     <th class="px-4 py-2">Aksi</th> <!-- Kolom untuk tombol Edit -->
                 </tr>
             </thead>
@@ -120,7 +140,6 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                         echo "<td class='px-4 py-2'>" . htmlspecialchars($row['nama_barang']) . "</td>";
                         echo "<td class='px-4 py-2'>" . htmlspecialchars($row['stok']) . "</td>";
                         echo "<td class='px-4 py-2'>" . htmlspecialchars($row['satuan']) . "</td>";
-                        echo "<td class='px-4 py-2'>" . htmlspecialchars($row['created_at']) . "</td>";
                         echo "<td class='px-4 py-2'>
             <button onclick='openEditModal(\"" . htmlspecialchars($row['nama_barang']) . "\", \"" . htmlspecialchars($row['stok']) . "\", \"" . htmlspecialchars($row['satuan']) . "\", \"" . htmlspecialchars($row['id']) . "\")' 
                     class='px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition'>
@@ -141,34 +160,29 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
         </table>
     </div>
 
-    <!-- Modal -->
-    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-            <h2 class="text-2xl mb-4 mulish font-bold text-gray-800">Tambah Barang Baru</h2>
-            <form method="POST" action="process_input_barang.php" class="text-black">
-                <div class="mb-4">
-                    <label for="nama_barang" class="block text-gray-700">Nama Barang:</label>
-                    <input type="text" id="nama_barang" name="nama_barang"
-                        class="w-full border-gray-300 rounded-md focus:ring focus:ring-blue-200 p-2" required>
-                </div>
-                <div class="mb-4">
-                    <label for="stok" class="block text-gray-700">Stok:</label>
-                    <input type="number" id="stok" name="stok"
-                        class="w-full border-gray-300 rounded-md focus:ring focus:ring-blue-200 p-2" required>
-                </div>
-                <div class="mb-4">
-                    <label for="satuan" class="block text-gray-700">Satuan:</label>
-                    <input type="text " id="satuan" name="satuan"
-                        class="w-full border-gray-300 rounded-md focus:ring focus:ring-blue-200 p-2"></input>
-                </div>
-                <div class="flex justify-end">
-                    <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded-full mr-2"
-                        onclick="toggleModal()">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-full">Simpan</button>
-                </div>
-            </form>
+            <!-- Modal Tambah Barang -->
+        <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                <h2 class="text-2xl mb-4 mulish font-bold text-gray-800">Tambah Barang Baru</h2>
+                <form method="POST" action="process_input_barang.php" class="text-black">
+                    <div class="mb-4">
+                        <label for="nama_barang" class="block text-gray-700">Nama Barang:</label>
+                        <input type="text" id="nama_barang" name="nama_barang"
+                            class="w-full border-gray-300 rounded-md focus:ring focus:ring-blue-200 p-2" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="satuan" class="block text-gray-700">Satuan:</label>
+                        <input type="text" id="satuan" name="satuan"
+                            class="w-full border-gray-300 rounded-md focus:ring focus:ring-blue-200 p-2" required>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded-full mr-2"
+                            onclick="toggleModal()">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-full">Tambahkan</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
 
     <!-- Modal Edit Barang -->
     <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
